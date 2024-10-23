@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "modern-finance-dashboard"
+version = "0.1.0"
+description = "A simple Streamlit app using Plotly to display data in an interactive fashion"
+authors = ["Daniel Worton <40602423+mutableGrape@users.noreply.github.com>"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.12"
+plotly = "^5.3.1"
+streamlit = "^1.39.0"
+filterpy = "^1.4.5"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
