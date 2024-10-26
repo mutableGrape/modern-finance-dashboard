@@ -7,9 +7,9 @@ st.title("Analysis")
 if "finance_data" not in st.session_state or not st.session_state.finance_data:
     st.error("Please load a dataset first.")
 else:
-    dataset_names = [account.name for account in st.session_state.finance_data]
+    dataset_names = [account.acc_name for account in st.session_state.finance_data]
     selected_dataset_name = st.selectbox("Select a dataset", dataset_names)
-    selected_account = next(account for account in st.session_state.finance_data if account.name == selected_dataset_name)
+    selected_account = next(account for account in st.session_state.finance_data if account.acc_name == selected_dataset_name)
     data = selected_account.data
 
     # Convert 'Date' column to datetime
