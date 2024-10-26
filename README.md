@@ -32,6 +32,8 @@ A sweet and simple streamlit app for monitoring your personal finances. Input yo
 
 2. Open your web browser and go to `http://localhost:8501` to view the app.
 
+3. Upload your CSV file on the Analysis page to see the income outcome analysis.
+
 ## Dataset
 
 The app uses a sample dataset located at `src/data/sample_data.csv`. You can modify this file or replace it with your own dataset.
