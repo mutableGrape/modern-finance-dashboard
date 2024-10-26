@@ -2,10 +2,7 @@ import plotly.express as px
 import plotly.graph_objs as go
 import pandas as pd
 
-def balance_plot(data: pd.DataFrame) -> go.Figure:
-    # Ensure 'Date' is in datetime format
-    data['Date'] = pd.to_datetime(data['Date'])
-    
+def balance_plot(data: pd.DataFrame) -> go.Figure:    
     # Create the line plot
     fig = px.line(data, x='Date', y='Balance', labels={'value': 'Balance'}, title='Balance')
     
@@ -19,8 +16,6 @@ def balance_plot(data: pd.DataFrame) -> go.Figure:
 
 def monthly_income_breakdown(data: pd.DataFrame) -> go.Figure:
     # Calculate monthly income and expenditure
-    data['Date'] = pd.to_datetime(data['Date'])
-    data['Month'] = data['Date'].dt.to_period('M')
     monthly_data = data.groupby('Month').agg({'Paid in': 'sum', 'Paid out': 'sum'}).reset_index()
     monthly_data['Month'] = monthly_data['Month'].astype(str)  # Convert Period to string
     monthly_data['Savings'] = monthly_data['Paid in'] - monthly_data['Paid out']
@@ -33,7 +28,7 @@ def monthly_income_breakdown(data: pd.DataFrame) -> go.Figure:
     fig_combined = px.bar(monthly_data, x='Month', y=['Savings', 'Paid out'], 
                             labels={'value': 'Amount', 'variable': 'Category'}, 
                             title='Average Monthly Income, Expenditure, and Savings',
-                            color_discrete_map={'Paid out': 'red', 'Savings': 'blue'})
+                            )
     fig_combined.update_layout(barmode='stack')
 
     # Add horizontal lines for average 'Paid out' and 'Savings'
@@ -43,7 +38,7 @@ def monthly_income_breakdown(data: pd.DataFrame) -> go.Figure:
         y0=avg_paid_out,
         x1=monthly_data['Month'].max(),
         y1=avg_paid_out,
-        line=dict(color='red', dash='dash'),
+        line=dict(dash='dash'),
         xref='x',
         yref='y'
     )
@@ -63,7 +58,7 @@ def monthly_income_breakdown(data: pd.DataFrame) -> go.Figure:
         y0=avg_savings,
         x1=monthly_data['Month'].max(),
         y1=avg_savings,
-        line=dict(color='blue', dash='dash'),
+        line=dict(dash='dash'),
         xref='x',
         yref='y'
     )
@@ -79,3 +74,13 @@ def monthly_income_breakdown(data: pd.DataFrame) -> go.Figure:
     )
 
     return fig_combined
+
+def plot_balance_distribution(data):
+    fig = px.histogram(data, x='Balance', nbins=20, title='Balance Distribution')
+    return fig
+
+def plot_monthly_average_balance(data):
+    monthly_avg_balance = data.groupby('Month')['Balance'].mean().reset_index()
+    monthly_avg_balance['Month'] = monthly_avg_balance['Month'].astype(str)
+    fig = px.bar(monthly_avg_balance, x='Month', y='Balance', title='Monthly Average Balance')
+    return fig

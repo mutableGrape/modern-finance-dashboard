@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
-from plots.basic import balance_plot, monthly_income_breakdown
+from plots.basic import balance_plot, monthly_income_breakdown, plot_balance_distribution, plot_monthly_average_balance
 
 st.set_page_config(layout="wide", page_icon=":material/query_stats:")
 st.title("Analysis")
@@ -38,8 +37,11 @@ else:
     with col1:
         # Display the original and filtered data using Plotly
         st.plotly_chart(balance_plot(filtered_data))
+        st.plotly_chart(plot_monthly_average_balance(filtered_data))
 
     with col2:
         # Income Outcome Analysis
         fig_combined = monthly_income_breakdown(filtered_data)
         st.plotly_chart(fig_combined)
+        st.plotly_chart(plot_balance_distribution(filtered_data))
+

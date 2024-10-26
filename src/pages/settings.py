@@ -5,11 +5,16 @@ from langchain_community.llms.ollama import Ollama
 
 def load_data(file_path):
     if file_path.endswith(".csv"):
-        return pd.read_csv(file_path, encoding='utf-8')
+        df = pd.read_csv(file_path, encoding='utf-8')
     elif file_path.endswith(".xlsx"):
-        return pd.read_excel(file_path)
+        df =  pd.read_excel(file_path)
     else:
-        st.error("Invalid file format. Please upload a CSV or Excel file.")
+        return st.error("Invalid file format. Please upload a CSV or Excel file.")
+    
+    df['Date'] = pd.to_datetime(df['Date'])
+    df['Month'] = df['Date'].dt.to_period('M')
+    return df
+
 
 def file_stuff():
     def handle_select():
