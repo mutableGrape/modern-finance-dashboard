@@ -4,11 +4,13 @@ from plots.basic import balance_plot, monthly_income_breakdown, plot_balance_dis
 
 st.set_page_config(layout="wide", page_icon=":material/query_stats:")
 st.title("Analysis")
-if "finance_data" not in st.session_state:
+if "finance_data" not in st.session_state or not st.session_state.finance_data:
     st.error("Please load a dataset first.")
 else:
-
-    data = st.session_state.finance_data
+    dataset_names = [account.name for account in st.session_state.finance_data]
+    selected_dataset_name = st.selectbox("Select a dataset", dataset_names)
+    selected_account = next(account for account in st.session_state.finance_data if account.name == selected_dataset_name)
+    data = selected_account.data
 
     # Convert 'Date' column to datetime
     data['Date'] = pd.to_datetime(data['Date'])
@@ -44,4 +46,3 @@ else:
         fig_combined = monthly_income_breakdown(filtered_data)
         st.plotly_chart(fig_combined)
         st.plotly_chart(plot_balance_distribution(filtered_data))
-
