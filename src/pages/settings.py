@@ -1,13 +1,13 @@
 import streamlit as st
 import pandas as pd
-import os
-from langchain_community.llms.ollama import Ollama
+from langchain.llms.ollama import Ollama
+from entity.account_entity import Account
 
-def load_data(file_path):
-    if file_path.endswith(".csv"):
-        df = pd.read_csv(file_path, encoding='utf-8')
-    elif file_path.endswith(".xlsx"):
-        df =  pd.read_excel(file_path)
+def load_data(file):
+    if file.name.endswith(".csv"):
+        df = pd.read_csv(file, encoding='utf-8')
+    elif file.name.endswith(".xlsx"):
+        df = pd.read_excel(file)
     else:
         return st.error("Invalid file format. Please upload a CSV or Excel file.")
     
@@ -15,55 +15,57 @@ def load_data(file_path):
     df['Month'] = df['Date'].dt.to_period('M')
     return df
 
+def handle_upload(files):
+    datasets = []
+    for i, uploaded_file in enumerate(files):
+        data = load_data(uploaded_file)
+        account = Account(name=f"Account {i+1}", fn=uploaded_file.name, data=data)
+        datasets.append(account)
 
-def file_stuff():
-    def handle_select():
-        print("run")
-        # Clear any existing message
-        message_container.empty()
-        
-        if not selected_option == "Upload your own":
-            # Load the selected dataset
-            file_path = os.path.join("src", "data", selected_option)
-            print(file_path)
-            data = load_data(file_path)
-            st.write(data)
-            st.session_state.finance_data = data
-            message_container.success(f"Successfully loaded: {selected_option}")
-        else:
-            # Upload a new dataset
-            uploaded_file = st.file_uploader("Upload your dataset", type=["csv", "xlsx"])
-            if uploaded_file is not None:
-                # Read the uploaded file into a pandas dataframe (load_data won't work here)
-                data = pd.read_csv(uploaded_file) if uploaded_file.name.endswith(".csv") else pd.read_excel(uploaded_file)
-                st.write(data)
-                st.session_state.finance_data = data
-                st.session_state.known_datasets.append(uploaded_file.name)
-                message_container.success("File uploaded successfully!")
-            else:
-                message_container.warning("An error occured")
+    st.session_state.finance_data += datasets
 
-    # Dataset selection
-    st.header("Select Dataset")
-    
-    # Pre-loaded datasets
-    if "known_datasets" not in st.session_state:
-        st.session_state.known_datasets = [f for f in os.listdir("src\\data") if os.path.isfile(os.path.join("src\\data", f)) and f.endswith((".csv", ".xlsx"))]
+def get_files_to_upload():
+    """This function is a streamlit button that opens a modal to upload files"""
 
-    selected_option = st.selectbox(
-        "Choose a dataset",
-        st.session_state.known_datasets + ["Upload your own"],
-        key="dataset_choice",
-        placeholder="Select a dataset...",
-        on_change=handle_select,
-    )
+    with st.popover("Upload Files"):
+        uploaded_files = st.file_uploader("Upload your datasets", type=["csv", "xlsx"], accept_multiple_files=True)
 
-    # Create an empty container for the success message
-    message_container = st.empty()
-    
-    handle_select()
+    if uploaded_files:
+        files = uploaded_files.copy()
+        del uploaded_files
+        handle_upload(files)
 
-def llm_stuff():
+def display_uploaded_files():
+    st.subheader("Uploaded Files")
+
+    # Display column headers
+    header_cols = st.columns([3, 3, 1])
+    header_titles = ["Account name", "Filename", "Remove"]
+    for col, title in zip(header_cols, header_titles):
+        with col:
+            st.write("**" + title + "**")
+
+    # Display uploaded files
+    for account in st.session_state.finance_data:
+        col1, col2, col3 = st.columns([3, 3, 1], vertical_alignment="center")
+        with col1:
+            new_name = st.text_input("Edit Account Name", value=account.acc_name, key=str(id(account))+"_name", label_visibility="collapsed")
+            if new_name != account.acc_name:
+                account.acc_name = new_name
+        with col2:
+            st.write(account.filename)
+        with col3:
+            if st.button('x', key=str(id(account))+"_remove"):
+                st.session_state.finance_data.remove(account)
+                st.rerun()
+
+def account_options(): 
+    col1, col2 = st.columns([6,1], vertical_alignment="bottom")
+    col1.header("Upload Account Data")
+    with col2: get_files_to_upload()
+    display_uploaded_files()
+
+def llm_options():
     # LLM model selection
     st.header("Select LLM Model")
     llm_models = ["llama3"]
@@ -71,7 +73,6 @@ def llm_stuff():
     message_container = st.empty()
 
     def set_llm():
-        
         if "chat_llm" not in st.session_state:
             st.session_state.chat_llm = Ollama(model="llama3")
         else:
@@ -80,5 +81,6 @@ def llm_stuff():
     
     set_llm()
 
-file_stuff()
-llm_stuff()
+llm_options()
+
+account_options()
